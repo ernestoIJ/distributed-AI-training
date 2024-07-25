@@ -70,10 +70,10 @@ def evaluate_model(model, device, test_loader):
    f1 = f1_score(y_true=y_true, y_pred=y_pred, average='macro')
 
    return {
-      'accuracy': f"{accuracy:.2f}",
-      'precision': f"{precision:.2f}",
-      'recall': f"{recall:.2f}",
-      'f1_score': f"{f1:.2f}"
+      'accuracy': f"{accuracy:.4f}",
+      'precision': f"{precision:.4f}",
+      'recall': f"{recall:.4f}",
+      'f1_score': f"{f1:.4f}"
    }
 
 
