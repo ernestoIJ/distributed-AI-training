@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Distributed Training Demo</title>
+</head>
+
+<body>
+   <h1>Compare Distributed and Non-Distributed Model Training</h1>
+   <label for="dataset">Choose a dataset:</label>
+   <select id="dataset">
+      <option value="MNIST">MNIST</option>
+      <option value="FashionMNIST">FashionMNIST</option>
+   </select>
+   <label for="epochs">Number of Epochs:</label>
+   <input type="number" id="epochs" value="10" min="1">
+   <button onclick="start_training()">Start Training</button>
+   <h2>Results</h2>
+   <div id="results"></div>
+
+   <script src="app.js"></script>
+</body>
+
+</html>
