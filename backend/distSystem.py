@@ -36,15 +36,10 @@ def get_training_data(rank, world_size, dds: bool):
 
    return train_loader
 
-def get_testing_data(rank, world_size, dds: bool):
+def get_testing_data():
    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
    test_set = MNIST(root='./data', train=False, download=False, transform=transform)
-
-   if dds:
-      test_sampler = torch.utils.data.distributed.DistributedSampler(test_set, num_replicas=world_size, rank=rank)
-      test_loader = DataLoader(dataset=test_set, batch_size=64, shuffle=False, sampler=test_sampler)
-   else:
-      test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
+   test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
    
    return test_loader
 
@@ -113,11 +108,11 @@ def train_loop(train_loader, device, model, loss_fn, optimizer, rank, time_dict,
          model.train()
 
          # 1. forward pass
-         train_pred = model.forward(X_train)
+         train_pred = model(X_train)
 
          # 2. Calculate the loss
          loss = loss_fn(train_pred, y_train)
-         train_loss += loss
+         train_loss += loss.item()
 
          # 3. zero out grad
          optimizer.zero_grad()
@@ -163,7 +158,7 @@ def dds_train(rank, world_size, time_dict, epochs, lr):
          
    # Cleaning the distributed environment
    dds_cleanup()
-   test_loader = get_testing_data(rank=rank, world_size=world_size, dds=True)
+   test_loader = get_testing_data()
    metrics = evaluate_model(model, device, test_loader)
    for key, value in metrics.items():
       time_dict[key + "1"] = value
@@ -171,30 +166,27 @@ def dds_train(rank, world_size, time_dict, epochs, lr):
 
 
 def train(time_dict, epochs, lr):
-
    train_loader = get_training_data(rank=None, world_size=None, dds=False)
-   
    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
    model = MNISTModel(input_shape=784, output_shape=10, hidden_units=500).to(device)
-
    loss_fn, optimizer = get_optimizer_and_loss_fn(model=model, lr=lr)
-
    epochs = epochs
 
    print("Starting Training without DDS")
    model = train_loop(train_loader=train_loader, device=device, model=model, loss_fn=loss_fn, optimizer=optimizer, rank=None, time_dict=time_dict, epochs=epochs)
-   test_loader = get_testing_data(rank=None, world_size=None, dds=False)
+   test_loader = get_testing_data()
    metrics = evaluate_model(model, device, test_loader)
    for key, value in metrics.items():
       time_dict[key + "2"] = value
    # save_model(model=model, dds=False)  
 
-def main(epochs):
+def main(epochs, lr_1, lr_2):
    manager = mp.Manager()
    time_dict = manager.dict()
    epochs = epochs
-   lr = 0.01
+   lr1 = lr_1
+   lr2 = lr_2
    world_size = 3
-   mp.spawn(dds_train, args=(world_size, time_dict, epochs, lr), nprocs=world_size, join=True)
-   train(time_dict, epochs=epochs, lr=lr)
+   mp.spawn(dds_train, args=(world_size, time_dict, epochs, lr1), nprocs=world_size, join=True)
+   train(time_dict, epochs=epochs, lr=lr2)
    return time_dict

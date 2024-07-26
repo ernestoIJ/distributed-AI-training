@@ -12,11 +12,14 @@
    <label for="dataset">Choose a dataset:</label>
    <select id="dataset">
       <option value="MNIST">MNIST</option>
-      <option value="FashionMNIST">FashionMNIST</option>
    </select>
    <label for="epochs">Number of Epochs:</label>
    <input type="number" id="epochs" value="2" min="1" max="10">
-   <button onclick="start_training()">Start Training</button>
+   <label for="learning_rate1">learning rate for distributed model:</label>
+   <input type="number" id="learning_rate1" value="0.01" min="0.01">
+   <label for="learning_rate2">learning rate for non-distributed model:</label>
+   <input type="number" id="learning_rate2" value="0.01" min="0.01">
+   <button id="startButton" onclick="start_training()">Start Training</button>
    <h2>Results</h2>
    <div id="results"></div>
 
